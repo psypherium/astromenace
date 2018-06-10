@@ -1,4 +1,4 @@
-# AstroMenace  [![Build Status](https://travis-ci.org/viewizard/astromenace.svg?branch=master)](https://travis-ci.org/viewizard/astromenace)
+# AstroMenace  [![Build Status](https://travis-ci.org/viewizard/astromenace.svg?branch=master)](https://travis-ci.org/viewizard/astromenace) [![Discord](https://discordapp.com/api/guilds/440767600629121027/widget.png)](https://discord.gg/PMqWxVX)
 
 * [Installation (Windows, macOS, Linux)](https://github.com/viewizard/astromenace#installation)
 * [Build (macOS, Linux)](https://github.com/viewizard/astromenace#build)
@@ -56,7 +56,7 @@ sudo emerge openastromenace
 ## Build
 
 Build dependencies:
-libSDL2 (ver 2.0.4+), libopenal (ver 1.0+), libalut (ver 1.0+), libogg (ver 1.1+), libvorbis (ver 1.1+), freetype (ver 2.1.6+), GLU
+libSDL2 (ver 2.0.5+), libopenal (ver 1.0+), libalut (ver 1.0+), libogg (ver 1.1+), libvorbis (ver 1.1+), freetype (ver 2.1.6+), GLU
 
 
 The easy way to get up to date AstroMenace on your computer:

@@ -87,11 +87,11 @@ bool cParticle::Update(float TimeDelta, const sVECTOR3D &ParentLocation,
 		if (Magnet) {
 			sVECTOR3D MagnetDir = ParentLocation;
 			MagnetDir -= Location;
+			MagnetDir.Normalize();
 
 			if (NeedStop)
 				MagnetFactor -= MagnetFactor * TimeDelta;
 
-			MagnetDir.Normalize();
 			Velocity += MagnetDir ^ (MagnetFactor * TimeDelta);
 		}
 
@@ -343,6 +343,9 @@ void cParticleSystem::SizeCorrectionByCameraDist(cParticle &NewParticle)
  */
 void cParticleSystem::GenerateLocationPointType(cParticle &NewParticle)
 {
+	// FIXME this should be fixed, Point Type should return same location as system,
+	//       if particle system need CreationSize, Sphere or Cube Type should be used
+	//       since we have point type by default, not so easy now find related code
 	NewParticle.Location = Location + sVECTOR3D(vw_Randf0 * CreationSize.x,
 						    vw_Randf0 * CreationSize.y,
 						    vw_Randf0 * CreationSize.z);
@@ -353,28 +356,9 @@ void cParticleSystem::GenerateLocationPointType(cParticle &NewParticle)
  */
 void cParticleSystem::GenerateLocationCubeType(cParticle &NewParticle)
 {
-	if (DeadZone != 0.0f) {
-		float minDist2 = CreationSize.x * CreationSize.x +
-				 CreationSize.y * CreationSize.y +
-				 CreationSize.z * CreationSize.z;
-		// if DeadZone^2 more then CreationSize^2, disable DeadZone
-		if (minDist2 <= DeadZone * DeadZone)
-			DeadZone = 0.0f;
-	}
-
-	sVECTOR3D CreationPos{vw_Randf0 * CreationSize.x,
-			      vw_Randf0 * CreationSize.y,
-			      vw_Randf0 * CreationSize.z};
-	float ParticleDist2 = CreationPos.x * CreationPos.x +
-			      CreationPos.y * CreationPos.y +
-			      CreationPos.z * CreationPos.z;
-	while (ParticleDist2 < DeadZone * DeadZone) {
-		// increase radius
-		sVECTOR3D tmpPosInc = CreationPos;
-		tmpPosInc.Normalize();
-		tmpPosInc = tmpPosInc ^ (1 / 100.0f); // increase distance on 1%
-		CreationPos += tmpPosInc;
-	}
+	sVECTOR3D CreationPos{(1.0f - vw_fRand() * 2) * CreationSize.x,
+			      (1.0f - vw_fRand() * 2) * CreationSize.y,
+			      (1.0f - vw_fRand() * 2) * CreationSize.z};
 
 	vw_Matrix33CalcPoint(CreationPos, CurrentRotationMat);
 	NewParticle.Location = Location + CreationPos;
@@ -385,28 +369,9 @@ void cParticleSystem::GenerateLocationCubeType(cParticle &NewParticle)
  */
 void cParticleSystem::GenerateLocationTubeType(cParticle &NewParticle)
 {
-	if (DeadZone != 0.0f) {
-		float minDist2 = CreationSize.x * CreationSize.x +
-				 CreationSize.y * CreationSize.y +
-				 CreationSize.z * CreationSize.z;
-		// if DeadZone^2 more then CreationSize^2, disable DeadZone
-		if (minDist2 <= DeadZone * DeadZone)
-			DeadZone = 0.0f;
-	}
-
 	sVECTOR3D CreationPos{(0.5f - vw_fRand()) * CreationSize.x,
 			      (0.5f - vw_fRand()) * CreationSize.y,
 			      (0.5f - vw_fRand()) * CreationSize.z};
-	float ParticleDist2 = CreationPos.x * CreationPos.x +
-			      CreationPos.y * CreationPos.y +
-			      CreationPos.z * CreationPos.z;
-	while (ParticleDist2 < DeadZone * DeadZone) {
-		// increase radius
-		sVECTOR3D tmpPosInc = CreationPos;
-		tmpPosInc.Normalize();
-		tmpPosInc = tmpPosInc ^ (1 / 100.0f); // increase distance on 1%
-		CreationPos += tmpPosInc;
-	}
 
 	vw_Matrix33CalcPoint(CreationPos, CurrentRotationMat);
 	NewParticle.Location = Location + CreationPos;
@@ -417,44 +382,24 @@ void cParticleSystem::GenerateLocationTubeType(cParticle &NewParticle)
  */
 void cParticleSystem::GenerateLocationSphereType(cParticle &NewParticle)
 {
-	float minDist2 = CreationSize.x * CreationSize.x +
-			 CreationSize.y * CreationSize.y +
-			 CreationSize.z * CreationSize.z;
-	// if DeadZone^2 more then CreationSize^2, disable DeadZone
-	float DeadZone2 = DeadZone * DeadZone;
-	if (minDist2 <= DeadZone2) {
-		DeadZone = 0.0f;
-		DeadZone2 = 0.0f;
-	}
-
+	// note, this is not really 'sphere' type, since we use
+	// vector instead of radius for initial location calculation
 	sVECTOR3D CreationPos{vw_Randf0 * CreationSize.x,
 			      vw_Randf0 * CreationSize.y,
 			      vw_Randf0 * CreationSize.z};
-	float ParticleDist2 = CreationPos.x * CreationPos.x +
-			      CreationPos.y * CreationPos.y +
-			      CreationPos.z * CreationPos.z;
-	while ((ParticleDist2 > minDist2) || (ParticleDist2 < DeadZone2)) {
-		if (ParticleDist2 > minDist2) {
-			// decrease radius
-			sVECTOR3D tmpPosDec = CreationPos;
-			tmpPosDec.Normalize();
-			tmpPosDec = tmpPosDec ^ (1 / 100.0f); // decrease distance on 1%
-			CreationPos -= tmpPosDec;
-		}
-		if (ParticleDist2 < DeadZone2) {
-			// increase radius
-			sVECTOR3D tmp1 = CreationPos;
-			tmp1.Normalize();
-			tmp1 = tmp1 ^ (1 / 100.0f); // increase distance on 1%
-			CreationPos += tmp1;
+
+	if (DeadZone > 0.0f) {
+		float ParticleDist2 = CreationPos.x * CreationPos.x +
+				      CreationPos.y * CreationPos.y +
+				      CreationPos.z * CreationPos.z;
+
+		if (ParticleDist2 < DeadZone * DeadZone) {
+			CreationPos *= DeadZone / vw_sqrtf(ParticleDist2);
 
 			vw_Clamp(CreationPos.x, -CreationSize.x, CreationSize.x);
 			vw_Clamp(CreationPos.y, -CreationSize.y, CreationSize.y);
 			vw_Clamp(CreationPos.z, -CreationSize.z, CreationSize.z);
 		}
-		ParticleDist2 = CreationPos.x * CreationPos.x +
-				CreationPos.y * CreationPos.y +
-				CreationPos.z * CreationPos.z;
 	}
 
 	vw_Matrix33CalcPoint(CreationPos, CurrentRotationMat);

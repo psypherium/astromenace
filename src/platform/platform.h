@@ -75,4 +75,30 @@ void JoystickEmulateMouseMovement(float Time);
 // Provide joystick's button name - "JoystickN", where N is number.
 const std::string JoystickButtonName(int Num);
 
+/*
+ * Video.
+ */
+
+struct sViewSize {
+	int Width{0};
+	int Height{0};
+
+	sViewSize() = default;
+	sViewSize(int _Width, int _Height) :
+		Width{_Width},
+		Height{_Height}
+	{}
+};
+
+// Detect current display size for fullscreen mode.
+// Note, we work with one display only now.
+// If current display size is not appropriate, returned vector is empty.
+std::vector<sViewSize> &DetectFullScreenSize();
+// Detect allowed view size array for windowed mode.
+std::vector<sViewSize> &DetectWindowSizeArray();
+// Change index of the display to query.
+void ChangeDisplayIndex(int NewDisplayIndex);
+// Check for standard aspect ratio.
+bool StandardAspectRation(const sViewSize &ViewSize);
+
 #endif // PLATFORM_RELATED_H
